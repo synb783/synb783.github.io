@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>X L T俱乐部</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: "Microsoft Yahei", sans-serif;
+            height: 100%;
+            overflow-x: hidden;
+            position: relative;
+            background-color: #000; /* 底图改为纯黑色 */
+            padding-bottom: 50px;
+        }
+        /* 全局归位动画（打开页面从上到下依次显示） */
+        .animate-in {
+            opacity: 0;
+            transform: translateY(-30px);
+            animation: fadeInUp 0.6s ease forwards;
+        }
+        /* 错开动画延迟，实现依次归位 */
+        .title-group { animation-delay: 0.1s; }
+        .card { animation-delay: 0.3s; }
+        .slide-tip { animation-delay: 0.5s; }
+        .price-list { animation-delay: 0.7s; }
+        .recruit-tip { animation-delay: 0.9s; }
+        .recruit-list { animation-delay: 1.1s; }
+        .service-btn { animation-delay: 1.3s; }
+
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* 流星雨效果 */
+        .meteor {
+            position: fixed;
+            top: -10%;
+            width: 2px;
+            height: 60px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.8), rgba(255,255,255,0));
+            transform: rotate(20deg);
+            animation: meteor-fall linear infinite;
+            z-index: -1;
+        }
+        @keyframes meteor-fall {
+            0% {
+                transform: rotate(20deg) translateY(0);
+                opacity: 1;
+            }
+            100% {
+                transform: rotate(20deg) translateY(120vh);
+                opacity: 0;
+            }
+        }
+        /* 主内容容器 */
+        .content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            padding: 30px 20px;
+            z-index: 1;
+            position: relative;
+        }
+        /* 标题与旋转图容器 */
+        .title-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .top-title{
+            font-size: 1.8rem;
+            color: #4fc3f7;
+            text-shadow: 0 0 15px rgba(79, 195, 247, 0.8);
+            margin-bottom: 10px;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+        /* 旋转图片样式 */
+        .rotate-img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            animation: rotate 10s linear infinite;
+        }
+        @keyframes rotate {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* 半透明底板 */
+        .card {
+            background-color: rgba(255,255,255,0.2);
+            backdrop-filter: blur(8px);
+            border-radius: 20px;
+            padding: 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .order-btn, .service-btn {
+            font-size: 1.3rem;
+            padding: 10px 25px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            width: 100%;
+        }
+        .order-btn:hover, .service-btn:hover {
+            background-color: #c0392b;
+        }
+        .service-btn {
+            background-color: #3498db;
+            margin-top: 20px;
+        }
+        .service-btn:hover {
+            background-color: #2980b9;
+        }
+        /* 下滑提示 */
+        .slide-tip, .recruit-tip {
+            text-align: center;
+            color: #fff;
+            font-size: 1rem;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            animation: bounce 1.5s infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(8px); }
+        }
+        .slide-icon { font-size: 1.2rem; }
+        /* 价格表样式 */
+        .price-list, .recruit-list {
+            width: 90%;
+            max-width: 500px;
+            background-color: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+            border-radius: 15px;
+            padding: 20px;
+            color: #fff;
+            line-height: 1.8;
+            font-size: 0.95rem;
+            margin-top: 10px;
+        }
+        .price-list h3, .recruit-list h3 {
+            font-size: 1.3rem;
+            text-align: center;
+            margin-bottom: 15px;
+            color: #f39c12;
+        }
+        .price-list .category, .recruit-list .category {
+            font-weight: bold;
+            margin: 10px 0 5px;
+            color: #3498db;
+        }
+        .price-list p, .recruit-list p {
+            margin: 3px 0;
+            padding-left: 8px;
+        }
+        /* 点单面板（保持原有样式） */
+        .order-panel, .service-panel {
+            position: fixed;
+            top: -100%;
+            left: 0;
+            width: 100%;
+            height: 80vh;
+            background-color: rgba(255,255,255,0.9);
+            border-bottom-left-radius: 30px;
+            border-bottom-right-radius: 30px;
+            padding: 25px;
+            transition: top 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .order-panel.show, .service-panel.show {
+            top: 0;
+        }
+        .panel-title {
+            font-size: 2rem;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            background: none;
+            border: none;
+            color: #2c3e50;
+            cursor: pointer;
+        }
+        /* 二维码图片样式 */
+        .wx-qr {
+            width: 80%;
+            max-width: 300px;
+            margin: 20px 0;
+            border-radius: 10px;
+        }
+        .wx-text {
+            font-size: 1.2rem;
+            color: #2c3e50;
+            text-align: center;
+            margin-top: 15px;
+        }
+        /* 适配平板 */
+        @media (min-width: 768px) {
+            .top-title{font-size: 2.2rem;}
+            h1 { font-size: 3rem; }
+            .rotate-img { width: 100px; height: 100px; }
+            .order-btn, .service-btn { font-size: 1.5rem; padding: 12px 30px; }
+            .price-list, .recruit-list { font-size: 1rem; padding: 25px; }
+            .price-list h3, .recruit-list h3 { font-size: 1.5rem; }
+        }
+        /* 弹窗样式 */
+        .tips-modal{
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+            z-index: 999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .tips-content{
+            background-color: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px 20px;
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+            color: #fff;
+            line-height: 2;
+        }
+        .tips-content h4{
+            font-size: 1.5rem;
+            color: #f39c12;
+            margin-bottom: 15px;
+        }
+        .tips-content p{
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+        }
+        .tips-confirm{
+            padding: 10px 30px;
+            background-color: #3498db;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.2rem;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <!-- 理性消费弹窗 -->
+    <div class="tips-modal" id="tipsModal">
+        <div class="tips-content">
+            <h4>温馨提示</h4>
+            <p>理性消费，适度娱乐<br>未满18周岁需在监护人同意下进行点单操作</p>
+            <button class="tips-confirm" id="tipsConfirm">确认</button>
+        </div>
+    </div>
+
+    <!-- 流星雨元素 -->
+    <script>
+        const createMeteors = () => {
+            const count = 15;
+            for (let i = 0; i < count; i++) {
+                const meteor = document.createElement('div');
+                meteor.classList.add('meteor');
+                meteor.style.left = `${Math.random() * 100}%`;
+                meteor.style.animationDuration = `${2 + Math.random() * 3}s`;
+                meteor.style.animationDelay = `${Math.random() * 5}s`;
+                document.body.appendChild(meteor);
+            }
+        };
+        createMeteors();
+
+        // 弹窗交互
+        const tipsModal = document.getElementById('tipsModal');
+        const tipsConfirm = document.getElementById('tipsConfirm');
+        tipsConfirm.addEventListener('click',()=>{
+            tipsModal.style.display = 'none';
+        })
+    </script>
+
+    <!-- 主内容（所有元素添加归位动画） -->
+    <div class="content">
+        <div class="title-group animate-in">
+            <div class="top-title">和平地铁护航</div>
+            <h1>X L T俱乐部</h1>
+            <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEQXt1pd3e-amMKsE1i2RvcTLTlvrHnfQACdyIAAtmRuFdNz9jyVuRmlzgE.png" alt="旋转图标" class="rotate-img">
+        </div>
+        <div class="card animate-in">
+            <button class="order-btn" id="orderBtn">点单</button>
+        </div>
+
+        <!-- 下滑提示（价格表） -->
+        <div class="slide-tip animate-in">
+            <span class="slide-icon">↓</span>
+            <span>看看有什么单</span>
+            <span class="slide-icon">↓</span>
+        </div>
+
+        <!-- 价格表 -->
+        <div class="price-list animate-in">
+            <h3>XLT俱乐部 价格表</h3>
+            <p>XLT</p>
+            
+            <div class="category">平民单</div>
+            <p>2¥ 保底288万</p>
+            <p>5¥ 保底688万</p>
+            <p>10¥ 保底1088万</p>
+            
+            <div class="category">特殊单</div>
+            <p>15¥ 保底700万+金枪一把</p>
+            <p>15¥ 保底700万+金护甲具一个</p>
+            <p>20¥ 保底900万+Boss武器一把</p>
+            <p>代起装备化甲化包+精制枪一把，三精制</p>
+            <p>小包（弹药）1￥</p>
+            
+            <div class="category">富人单</div>
+            <p>100¥ 1亿（分局打）</p>
+            <p>150¥ 打上小目标+5000万+Boss武器三把</p>
+            <p>180¥ 打上中目标+5000万+Boss武器三把</p>
+            <p>200¥ 打上大目标+5000万+Boss武器三把</p>
+            
+            <div class="category">自立根生单：5¥</div>
+            <p>板板自己打一局进阶</p>
+            <p>淘汰一名人机保底10万</p>
+            <p>淘汰一名真人保底100万</p>
+            <p>淘汰一名机甲保底300万</p>
+            
+            <div class="category">跑路单：5¥</div>
+            <p>板板可打开一局烽火荣都基础图</p>
+            <p>后向撤离点跑，板板撤离保底700万</p>
+            <p>打手先跑进保底300万</p>
+            
+            <div class="category">机甲单：15¥</div>
+            <p>板板为卧底</p>
+            <p>打手机甲</p>
+            <p>保底500万</p>
+            
+            <div class="category">注</div>
+            <p>特殊单，富人单，机甲单等在赛季初需+10¥</p>
+            <p>炸单一局+50万保底，连着翻车6局保底翻倍+一把Boss武器</p>
+            
+            <div class="category">夺金单：3¥</div>
+            <p>限打3局</p>
+            <p>失败一次保底100万</p>
+            
+            <div class="category">体验单：1¥</div>
+            <p>每人限一次</p>
+            <p>一元保底200万</p>
+            
+            <div class="category">进阶实验基地请图单：5¥</div>
+            <p>清图后箱子自己开，开到多少是多少</p>
+            <p>装备也算</p>
+             
+            <div class="category">苏尔南冲突模式清图单：10¥</div>
+            <p>清图后箱子自己开，开到多少是多少</p>
+            <p>装备也算</p>
+
+        <!-- 招募打手提示 -->
+        <div class="recruit-tip animate-in">
+            <span class="slide-icon">↓</span>
+            <span>招募打手</span>
+            <span class="slide-icon">↓</span>
+        </div>
+
+        <!-- 招募打手板块 -->
+        <div class="recruit-list animate-in">
+            <h3>招募打手/金牌打手</h3>
+            <p>欢迎大家积极参加（会放水）</p>
+            
+            <div class="category">考核</div>
+            <p>先加微信（董事长微信/微信网站上），加微信需备注“我要考核”。</p>
+            <p>考核要交10元押金，考核有三次机会，不限地图，但是必需是进阶图单局，淘汰6名真人（卧底不算）。</p>
+            <p>如果三次都失败直接滚蛋，三次有一次过关就算合格，押金就不退。</p>
+            <p>如果不想干了押金减半退5元押金，注：杀10个可成为金牌打手（进阶图单四不包含一图）</p>
+            
+            <div class="category">服务要求</div>
+            <p>进队需向老板问好并介绍自己，不许说大量脏话。</p>
+            <p>进局老板需待在辐射区外面躲好，炸单必需补单加50万保底。</p>
+            <p>不可以私变卖实物装备，打手之间相互看管。</p>
+            <p>还有不能开外挂，直装、改文件、美化包、游戏外设等，一旦发现不退押金然后人直接滚蛋。</p>
+            <p>补充：老板拿不下的装备需打手切换基础送过去给老板。</p>
+            
+            <div class="category">工资</div>
+            <p>按每个月的收成来</p>
+            <p>假设：这月共收100元，打手四个</p>
+            <p>客服15% （客服：100×15%=15元）</p>
+            <p>董事长25% （董事长：100×25%=25元）</p>
+            <p>打手60% 平分每个人（打手：100×60%=60元 60÷4=15元）</p>
+            <p>如果实力强是金牌打手另外加鸡腿。</p>
+            
+            <div class="category">宣传</div>
+            <p>如果有快手号就发一些关于俱乐部的视频</p>
+            <p>或者发一些自己打单的超炫操作，不会剪辑的不强求发。</p>
+        </div>
+
+        <!-- 寻找客服按钮 -->
+        <div class="card animate-in">
+            <button class="service-btn" id="serviceBtn">寻找客服</button>
+        </div>
+    </div>
+
+    <!-- 点单面板（原有） -->
+    <div class="order-panel" id="orderPanel">
+        <button class="close-btn" id="closeBtn">×</button>
+        <h2 class="panel-title">添加老板微信</h2>
+        <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEQXuJpd3h13JbB8mKxq70qRS3wB9IUdQACeiIAAtmRuFeXNi86prLRZzgE.jpg" alt="微信二维码" class="wx-qr">
+        <p class="wx-text">要想考核或者点单，请加vx</p>
+    </div>
+
+    <!-- 客服弹窗（新增） -->
+    <div class="service-panel" id="servicePanel">
+        <button class="close-btn" id="serviceCloseBtn">×</button>
+        <h2 class="panel-title">寻找客服</h2>
+        <img src="https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEQXvJpd3tW-QNsNpYFmYVFZO6MpNjQ2gAClCIAAtmRuFcMtk8IGndAXzgE.png" alt="客服二维码" class="wx-qr">
+        <p class="wx-text">这是客服</p>
+    </div>
+
+    <!-- 交互脚本 -->
+    <script>
+        // 点单面板交互
+        const orderBtn = document.getElementById('orderBtn');
+        const orderPanel = document.getElementById('orderPanel');
+        const closeBtn = document.getElementById('closeBtn');
+
+        orderBtn.addEventListener('click', () => {
+            orderPanel.classList.add('show');
+        });
+
+        closeBtn.addEventListener('click', () => {
+            orderPanel.classList.remove('show');
+        });
+
+        // 客服弹窗交互
+        const serviceBtn = document.getElementById('serviceBtn');
+        const servicePanel = document.getElementById('servicePanel');
+        const serviceCloseBtn = document.getElementById('serviceCloseBtn');
+
+        serviceBtn.addEventListener('click', () => {
+            servicePanel.classList.add('show');
+        });
+
+        serviceCloseBtn.addEventListener('click', () => {
+            servicePanel.classList.remove('show');
+        });
+    </script>
+</body>
+</html>
